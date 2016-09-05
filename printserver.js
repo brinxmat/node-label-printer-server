@@ -3,7 +3,7 @@ const Printer = require('ipp-printer')
 const fetch = require('isomorphic-fetch')
 
 const concat = require('concat-stream')
-const printer = new Printer({ name: 'Ministry of Silly Walks', port: 10001 })
+const printer = new Printer({ name: 'MOSW', port: 10001 })
 const exec = require('child_process').exec
 const randomstring = require('randomstring')
 
@@ -14,9 +14,10 @@ printer.on('job', function (job) {
   const file = fs.createWriteStream(psFileName)
 
   job.on('end', () => {
-    const cmd = `cat ${psFileName} | ps2ascii >&1 | egrep -o '\\b([0-9]{14})\\b' | uniq | while read -r line; do data=$(curl -L http://koha2.deichman.no:8081/api/v1/labelgenerator/\${line}); java -jar labelpdf.jar --data="$data" --output=./${pdfFileName} && lpr -P DYMO_LabelWriter_450___raspberrypi ${pdfFileName}; done; rm ${pdfFileName} ${psFileName}`
+    const cmd = `cat ${psFileName} | ps2ascii >&1 | grep -oP '(0301[0-9]{10})' | uniq | while read -r line; do data=$(curl -L http://koha2.deichman.no:8081/api/v1/labelgenerator/\${line}); java -jar bin/labelpdf.jar --data="$data" --output=./${pdfFileName} && lpr -P QL720NW ${pdfFileName}; done; rm ${pdfFileName} ${psFileName}`
     console.log(cmd)
     exec(cmd, (error, stdout, stderr)=> {
+      console.log(stdout)
       console.log(stderr)
     })
   })
